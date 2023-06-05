@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  {% if schedule %}
+    <h3 class="mt-5">Schedule</h3>
+    <table class="table table-bordered">
+      {% for item in schedule.classes %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ item.course }}</td>
+          <td>{{ item.instructor }}</td>
+          <td>{{ item.daytime.day}}</td>
+          <td>{{ item.daytime.time}}</td>
+          <td>{{ item.room}}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+{% endblock %}
