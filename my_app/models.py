@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime, timedelta
 
 # Create your models here.
 class Instructor(models.Model):
@@ -22,36 +23,33 @@ class Room(models.Model):
     def __str__(self):
         return self.name + " " + self.capacity
     
-# # Meeting Time
-# time_slots = (
-#     ('9:30','9:30'),
-#     ('10:30','10:30'),
-#     ('11:30','11:30'),
-#     ('12:30','12:30'),
-#     ('2:30','2:30'),
-#     ('3:30','3:30'),
-#     ('4:30','4:30')
-#     # ('9:30 - 10:30', '9:30 - 10:30'),
-#     # ('10:30 - 11:30', '10:30 - 11:30'),
-#     # ('11:30 - 12:30', '11:30 - 12:30'),
-#     # ('12:30 - 1:30', '12:30 - 1:30'),
-#     # ('2:30 - 3:30', '2:30 - 3:30'),
-#     # ('3:30 - 4:30', '3:30 - 4:30'),
-#     # ('4:30 - 5:30', '4:30 - 5:30'),
-# )
+time_slots = []
+
+# Start at 00:00 and go until 23:00
+current_time = datetime.strptime('00:00', '%H:%M')
+end_time = datetime.strptime('23:00', '%H:%M')
+
+while current_time <= end_time:
+    time_slot = (current_time.strftime('%H:%M'), current_time.strftime('%H:%M'))
+    time_slots.append(time_slot)
+    current_time += timedelta(hours=1)
+
+# Add the last time slot at 24:00
+time_slots.append(('24:00', '24:00'))
+
 DAYS_OF_WEEK = (
-    ('Monday', 'Monday'),
-    ('Tuesday', 'Tuesday'),
-    ('Wednesday', 'Wednesday'),
-    ('Thursday', 'Thursday'),
-    ('Friday', 'Friday'),
-    ('Saturday', 'Saturday'),
+    ('MON', 'Monday'),
+    ('TUE', 'Tuesday'),
+    ('WED', 'Wednesday'),
+    ('THU', 'Thursday'),
+    ('FRI', 'Friday'),
+    ('SAT', 'Saturday'),
 )
     
 class MeetingTime(models.Model):
     pid = models.CharField(max_length=4, primary_key=True)
-    start_time = models.CharField(max_length=50, choices=time_slots[:-1], default='10:00')
-    end_time = models.CharField(max_length=50, choices=time_slots[1:], default='4:00')
+    start_time = models.CharField(max_length=50, choices=time_slots[:], default='10:00')
+    end_time = models.CharField(max_length=50, choices=time_slots[:], default='16:00')
     day = models.CharField(max_length=15, choices=DAYS_OF_WEEK)
 
     def __str__(self):

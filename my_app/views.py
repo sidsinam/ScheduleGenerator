@@ -34,7 +34,7 @@ CLASS_TIMES = ["8-9am", "9-10am", "10-11am", "11am-12pm", "12-1pm", "1-2pm", "2-
 #}
 # DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 # time_dict = {"8-9am": 1, "9-10am" : 2, "10-11am" : 3, "11am-12pm" : 4, "12-1pm" : 5, "1-2pm" :6, "2-3pm": 7}
-# weekday_dict = {'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5}
+weekday_dict = {'MON': 1, 'TUE': 2, 'WED': 3, 'THU': 4, 'FRI': 5}
 
 
 # Create your views here.
@@ -44,14 +44,15 @@ def home(request):
 
 # Class definition
 class Class:
-    def __init__(self, course, instructor, room, daytime):
+    def __init__(self, course, instructor, room, day, time):
         self.instructor = instructor
-        self.daytime = daytime
+        self.day = day
+        self.time = time
         self.course = course
         self.room = room
     
     def __str__(self):
-        return f"{self.daytime} {self.room} {self.instructor} ({self.department}) {self.course}"
+        return f"{self.day} {self.time} {self.room} {self.instructor} ({self.department}) {self.course}"
 
 class DayTimeSlot:
     def __init__(self):
@@ -64,7 +65,7 @@ class DayTimeSlot:
         self.slots[day].append(time_slot)
 
     def __str__(self):
-        return self.slots
+        return self
 
 # Fitness function
 def get_fitness(schedule):
@@ -79,16 +80,16 @@ def get_fitness(schedule):
     # Check for conflicts and gaps in the schedule
     for i in range(NUM_CLASSES):
         for j in range(i + 1, NUM_CLASSES):
-            if schedule.classes[i].daytime.time == schedule.classes[j].daytime.time and schedule.classes[i].daytime.day == schedule.classes[j].daytime.day and schedule.classes[i].room == schedule.classes[j].room:
+            if schedule.classes[i].time == schedule.classes[j].time and schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].room == schedule.classes[j].room:
                 conflicts += 1
-            if schedule.classes[i].instructor == schedule.classes[j].instructor and schedule.classes[i].daytime == schedule.classes[j].daytime:
+            if schedule.classes[i].instructor == schedule.classes[j].instructor and schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].time == schedule.classes[j].time:
                 conflicts += 1
-            if schedule.classes[i].daytime.day == schedule.classes[j].daytime.day and schedule.classes[i].daytime.time == schedule.classes[j].daytime.time:
+            if schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].time == schedule.classes[j].time:
                 conflicts += 1
             # if schedule.classes[i].daytime.day == schedule.classes[j].daytime.day and abs(time_dict[schedule.classes[i].daytime.time] - time_dict[schedule.classes[j].daytime.time]) > 1:
             #       gaps += 1
 
-        classes_per_day[weekday_dict[schedule.classes[i].daytime.day] - 1] += 1
+        classes_per_day[weekday_dict[schedule.classes[i].day] - 1] += 1
 
         course_index = list(schedule.courses).index(schedule.classes[i].course)
         course_class_count[course_index] += 1
@@ -99,7 +100,7 @@ def get_fitness(schedule):
         if course_class_count[i] < min_course_class:
              minclass += min_course_class - course_class_count[i] 
 
-    balance_penalty = sum([abs(classes_per_day[i] - x) for i in range(len(DAYS))])
+    balance_penalty = sum([abs(classes_per_day[i] - x) for i in range(len(list(schedule.time_slots)))])
     if extra_classes > 0:
         balance_penalty -= classes_per_day.count(max(classes_per_day))
 
@@ -109,10 +110,12 @@ def get_fitness(schedule):
 
 # Define the schedule class
 class Schedule:
-    def __init__(self, classes, courses):
+    def __init__(self, classes, courses, time_slots):
         self.classes = classes
         self.courses = courses
+        self.time_slots = time_slots
         self.fitness = get_fitness(self)
+        
         
 
     def __str__(self):
@@ -121,8 +124,10 @@ class Schedule:
 
 # Define the genetic algorithm function
 def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, population_size, elite_size, mutation_rate, generations):
-
-    time_slots = generate_day_time_slot(daytime)
+    print("Inside genetic algorithm")
+    slot = generate_day_time_slot(meeting_times)
+    time_slots = slot.slots
+    print(time_slots)
     # Create the initial population
     population = []
     for i in range(population_size):
@@ -135,7 +140,7 @@ def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, p
             time = random.choice(time_slots[day])
             
             classes.append(Class(course, instructor, room, day, time))
-        population.append(Schedule(classes, courses))
+        population.append(Schedule(classes, courses, time_slots))
 
     
     # Evolve the population for a given number of generations
@@ -192,7 +197,7 @@ def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, p
                     child[k] = Class(course, instructor, room, day, time)
 
             # Add the child to the new population
-            new_population.append(Schedule(child,courses))
+            new_population.append(Schedule(child,courses,time_slots))
 
         # Set the population to the new population
         population = new_population
@@ -286,8 +291,9 @@ def generateSchedule(request):
     INSTRUCTORS = Instructor.objects.values_list('name', flat=True)
     COURSES = Course.objects.values_list('name', flat=True)
     ROOMS = Room.objects.values_list('name', flat=True)
-    schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTime, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
-    
+    MeetingTimes = MeetingTime.objects.all()
+    schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTimes, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
+
     print_schedule(schedule)
     
     return render(request, 'generateSchedule.html', {
@@ -299,28 +305,22 @@ def generate_day_time_slot(meeting_times):
     slots = DayTimeSlot()
     for meeting_time in meeting_times:
         day = meeting_time.day
-        start_time = meeting_time.start_time.strftime('%H:%M')
-        end_time = meeting_time.end_time.strftime('%H:%M')
-        
-        current_time = datetime.strptime(start_time, '%H:%M')
-        while current_time < datetime.strptime(end_time, '%H:%M'):
+        start_time = datetime.strptime(meeting_time.start_time, '%H:%M')
+        end_time = datetime.strptime(meeting_time.end_time, '%H:%M')
+        current_time = start_time
+        while current_time < end_time:
             start = current_time.strftime('%H:%M')
             end = (current_time + timedelta(hours=1)).strftime('%H:%M')
-            time_slot = {'start_time': start, 'end_time': end}
-            slots.add_time_slot(day, time_slot)
+            slots.add_time_slot(day, start, end) 
             current_time += timedelta(hours=1)
-
     return slots
     
+
 def print_schedule(schedule):
-    schedule.classes = sorted(schedule.classes, key = lambda x: (weekday_dict[x.daytime.day], 
-    # time_dict[x.daytime.time],
-     x.room))
-
-
+    schedule.classes = sorted(schedule.classes, key = lambda x: (weekday_dict[x.day], x.room))
     headers = ["ID", "Course", "Day", "Time", "Instructor", "Room", "Department"]
     table = []
     for i, scheduled_class in enumerate(schedule.classes):
-        row = [i+1, scheduled_class.course, scheduled_class.daytime.day, scheduled_class.daytime.time, scheduled_class.instructor, scheduled_class.room]
+        row = [i+1, scheduled_class.course, scheduled_class.day, scheduled_class.time, scheduled_class.instructor, scheduled_class.room]
         table.append(row)
     print(tabulate(table, headers=headers, tablefmt="grid"))

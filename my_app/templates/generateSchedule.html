@@ -10,8 +10,8 @@
           <td>{{ forloop.counter }}</td>
           <td>{{ item.course }}</td>
           <td>{{ item.instructor }}</td>
-          <td>{{ item.daytime.day}}</td>
-          <td>{{ item.daytime.time}}</td>
+          <td>{{ item.day}}</td>
+          <td>{{ item.time.start_time}}</td>
           <td>{{ item.room}}</td>
         </tr>
       {% endfor %}
