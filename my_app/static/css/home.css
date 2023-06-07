@@ -1,0 +1,27 @@
+* {
+    margin: 0;
+	padding: 0;
+	box-sizing: border-box;   
+    font-family: 'Poppins', sans-serif;    
+}
+.home--container {
+    display: flex;
+    gap: 8rem;
+    align-items: center;    
+}
+.start-button {
+    background-image: linear-gradient(to right, rgb(80, 176, 250), rgb(56, 129, 201), lightblue);
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    box-shadow: 2px 2px 3px #aaaaaa;
+}
+.home-caption {
+    font-weight: 200;
+    font-size: 1.4rem;
+}
+.start-caption {
+    font-weight: 400;
+}
+

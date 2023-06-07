@@ -1,6 +1,18 @@
 {% extends 'base.html' %}
-
 {% block content %}
-  <h2>Get Started!</h2>
-  <button type="button" class="btn btn-primary btn-large mt-3" onclick="window.location.href='/add-instructor'">Add Instructor</button>
+{% load static %}
+
+<div class="home--container" style="margin-top:5rem;">
+  <div>
+    <img src="{% static 'img/home.jpg' %}" alt="Image" style="width:700px"/>
+  </div>
+
+  <div class="d-flex flex-column align-items-start gap-2">
+    <h3 class="home-caption">Make your own schedules!</h3>
+    <h3 class="start-caption">Get Started!</h3>
+    <button type="button" class="start-button" onclick="window.location.href='/add-instructor'">Add Instructor</button>
+  </div>
+
+</div>
+
 {% endblock %}
