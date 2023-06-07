@@ -3,6 +3,8 @@ from .models import *
 from .forms import *
 from tabulate import tabulate
 import random
+from datetime import datetime, timedelta
+
 # import numpy as np
 
 
@@ -30,9 +32,9 @@ CLASS_TIMES = ["8-9am", "9-10am", "10-11am", "11am-12pm", "12-1pm", "1-2pm", "2-
 #     "Programming Languages": ["Kim Smith", "Mike Brown"],
 #     "Theory of Computation": ["Lisa Lee", "John Kim"],
 #}
-DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+# DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 # time_dict = {"8-9am": 1, "9-10am" : 2, "10-11am" : 3, "11am-12pm" : 4, "12-1pm" : 5, "1-2pm" :6, "2-3pm": 7}
-weekday_dict = {'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5}
+# weekday_dict = {'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5}
 
 
 # Create your views here.
@@ -42,21 +44,27 @@ def home(request):
 
 # Class definition
 class Class:
-    def __init__(self, course, instructor, room, day, time):
+    def __init__(self, course, instructor, room, daytime):
         self.instructor = instructor
-        self.daytime = Daytime(day, time)
+        self.daytime = daytime
         self.course = course
         self.room = room
     
     def __str__(self):
         return f"{self.daytime} {self.room} {self.instructor} ({self.department}) {self.course}"
 
-class Daytime:
-    def __init__(self, day, time):
-      self.day = day
-      self.time = time
+class DayTimeSlot:
+    def __init__(self):
+        self.slots = {}
+
+    def add_time_slot(self, day, start_time, end_time):
+        if day not in self.slots:
+            self.slots[day] = []
+        time_slot = {'start_time': start_time, 'end_time': end_time}
+        self.slots[day].append(time_slot)
+
     def __str__(self):
-        return f"{self.day} {self.time}"
+        return self.slots
 
 # Fitness function
 def get_fitness(schedule):
@@ -64,9 +72,9 @@ def get_fitness(schedule):
     conflicts = 0
     gaps = 0
     minclass = 0
-    x = NUM_CLASSES // len(DAYS)
-    extra_classes = NUM_CLASSES % len(DAYS)
-    classes_per_day = [0] * len(DAYS)
+    x = NUM_CLASSES // len(list(schedule.time_slots))
+    extra_classes = NUM_CLASSES % len(list(schedule.time_slots))
+    classes_per_day = [0] * len(list(schedule.time_slots))
     course_class_count = [0] * len(schedule.courses)
     # Check for conflicts and gaps in the schedule
     for i in range(NUM_CLASSES):
@@ -112,7 +120,9 @@ class Schedule:
         return self
 
 # Define the genetic algorithm function
-def genetic_algorithm(num_classes, instructors, class_days, class_times, rooms, courses, population_size, elite_size, mutation_rate, generations):
+def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, population_size, elite_size, mutation_rate, generations):
+
+    time_slots = generate_day_time_slot(daytime)
     # Create the initial population
     population = []
     for i in range(population_size):
@@ -121,8 +131,9 @@ def genetic_algorithm(num_classes, instructors, class_days, class_times, rooms, 
             course = random.choice(courses)
             instructor = random.choice(instructors)
             room = random.choice(rooms)
-            time = random.choice(class_times)
-            day = random.choice(class_days)
+            day = random.choice(list(time_slots))
+            time = random.choice(time_slots[day])
+            
             classes.append(Class(course, instructor, room, day, time))
         population.append(Schedule(classes, courses))
 
@@ -176,8 +187,8 @@ def genetic_algorithm(num_classes, instructors, class_days, class_times, rooms, 
                     course = random.choice(courses)
                     instructor = random.choice(instructors)
                     room = random.choice(rooms)
-                    time = random.choice(class_times)
-                    day = random.choice(class_days)
+                    day = random.choice(list(time_slots))
+                    time = random.choice(time_slots[day])
                     child[k] = Class(course, instructor, room, day, time)
 
             # Add the child to the new population
@@ -275,16 +286,31 @@ def generateSchedule(request):
     INSTRUCTORS = Instructor.objects.values_list('name', flat=True)
     COURSES = Course.objects.values_list('name', flat=True)
     ROOMS = Room.objects.values_list('name', flat=True)
-    #DAYS = MeetingTime.objects.all.day
-    #TIMES = MeetingTime.object.all.time
-
-    schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, DAYS, CLASS_TIMES, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
+    schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTime, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
     
     print_schedule(schedule)
     
     return render(request, 'generateSchedule.html', {
         'schedule': schedule,       
     })
+
+
+def generate_day_time_slot(meeting_times):
+    slots = DayTimeSlot()
+    for meeting_time in meeting_times:
+        day = meeting_time.day
+        start_time = meeting_time.start_time.strftime('%H:%M')
+        end_time = meeting_time.end_time.strftime('%H:%M')
+        
+        current_time = datetime.strptime(start_time, '%H:%M')
+        while current_time < datetime.strptime(end_time, '%H:%M'):
+            start = current_time.strftime('%H:%M')
+            end = (current_time + timedelta(hours=1)).strftime('%H:%M')
+            time_slot = {'start_time': start, 'end_time': end}
+            slots.add_time_slot(day, time_slot)
+            current_time += timedelta(hours=1)
+
+    return slots
     
 def print_schedule(schedule):
     schedule.classes = sorted(schedule.classes, key = lambda x: (weekday_dict[x.daytime.day], 
