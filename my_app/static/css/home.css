@@ -24,4 +24,10 @@
 .start-caption {
     font-weight: 400;
 }
+.input-container {
+    margin-top: 12rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;    
 
+}
