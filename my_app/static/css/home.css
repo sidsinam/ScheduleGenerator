@@ -25,9 +25,39 @@
     font-weight: 400;
 }
 .input-container {
-    margin-top: 12rem;
+    margin-top: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;    
-
+}
+.input-fields {
+    border-radius: 10px;
+    padding: 5px;
+    text-indent: 5px;    
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+.table-heading {
+    background-color: rgb(30 41 59);
+    color: white;
+}
+.table-data {
+    background-color: rgb(241 245 249);
+}
+.add-button {
+    background-color: rgb(2 132 199);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 1px 1px 3px #aaaaaa;
+}
+.proceed-button {
+    background-color: rgb(16 185 129);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 1px 1px 3px #aaaaaa;
+}
+.delete-button {
+    text-decoration: none;
+    color: rgb(225 29 72);
 }
