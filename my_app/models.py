@@ -1,5 +1,9 @@
 from django.db import models
 from datetime import datetime, timedelta
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save, post_delete
+from datetime import timedelta, date
 
 # Create your models here.
 class Instructor(models.Model):
@@ -10,8 +14,10 @@ class Instructor(models.Model):
         return self.uid + " " + self.name
     
 class Course(models.Model):
-    uid = models.CharField(max_length=10)
+    uid = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=100)
+    max_numb_students = models.CharField(max_length=65, default=40)
+    instructors = models.ForeignKey(Instructor, on_delete=models.CASCADE, blank=True, null=True)
     
     def __str__(self):
         return self.uid + " " + self.name
