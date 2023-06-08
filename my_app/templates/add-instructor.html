@@ -52,7 +52,12 @@
             <center>{{ instructor.name }}</center>
           </td>
           <td>
-            <center><a class="delete-button" href="{% url 'delete-instructor' instructor.id %}"> Delete </a></center>
+            <center>
+              <a class="delete-button" href="{% url 'delete-instructor' instructor.id %}">              
+               Delete
+              <i class="fas fa-trash-alt" style="margin-left: 3px;"></i>
+              </a>
+            </center>
           </td>
         </tr>
       {% endfor %}

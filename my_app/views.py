@@ -230,21 +230,18 @@ def deleteInstructor(request, instructor_id):
 
 # Course
 def addCourse(request):
-    all_instructors = Instructor.objects.values_list('name', flat=True)
-    if request.method == 'POST':
-        form = CourseForm(request.POST or None)
+    # all_instructors = Instructor.objects.values_list('name', flat=True)
+    form = CourseForm(request.POST or None)
+    if request.method == 'POST':      
 
         if form.is_valid():
             form.save()
-            all_courses = Course.objects.all
-            # print(Course.objects.values_list('instructors', flat=True))
-            print("hello world")
-
-            return render(request, 'add-course.html', {'all_courses': all_courses, 'all_instructors': all_instructors})
-
+            all_courses = Course.objects.all    
+            return render(request, 'add-course.html', {'all_courses': all_courses, 'form': form })        
     else:
         all_courses = Course.objects.all
-        return render(request, 'add-course.html', {'all_courses': all_courses, 'all_instructors': all_instructors})
+        return render(request, 'add-course.html', {'all_courses': all_courses, 'form': form })          
+    
     
 def deleteCourse(request, course_id):
     item = Course.objects.get(pk=course_id)

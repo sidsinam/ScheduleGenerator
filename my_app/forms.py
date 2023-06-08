@@ -10,7 +10,7 @@ class InstructorForm(ModelForm):
             'name'
         ]
         
-class CourseForm(ModelForm):
+class CourseForm(ModelForm):    
     class Meta:
         model = Course
         fields = [
@@ -19,6 +19,18 @@ class CourseForm(ModelForm):
             'max_numb_students',
             'instructors'
         ]
+        labels = {
+            'uid': 'Course ID',
+            'name': 'Course Name',
+            'max_numb_students': 'Max No. of Students',
+            'instructors': 'Instructors',
+        }
+        widgets = {
+            'uid': forms.TextInput(attrs={'class': 'input-fields'}),
+            'name': forms.TextInput(attrs={'class': 'input-fields'}),
+            'max_numb_students': forms.TextInput(attrs={'class': 'input-fields'}),
+                        
+        }        
         
         
 class RoomForm(ModelForm):

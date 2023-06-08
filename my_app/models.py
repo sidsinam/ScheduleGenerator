@@ -17,7 +17,8 @@ class Course(models.Model):
     uid = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=100)
     max_numb_students = models.CharField(max_length=65, default=40)
-    instructors = models.ForeignKey(Instructor, on_delete=models.CASCADE, blank=True, null=True)
+    instructors = models.ManyToManyField(Instructor)
+    #instructors = models.ForeignKey(Instructor, on_delete=models.CASCADE, blank=True, null=True)
     
     def __str__(self):
         return self.uid + " " + self.name

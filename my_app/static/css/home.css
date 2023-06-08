@@ -61,3 +61,10 @@
     text-decoration: none;
     color: rgb(225 29 72);
 }
+.select-field {
+    border-radius: 10px;
+    padding: 5px;
+    text-indent: 5px;    
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    margin-left: 10px;
+}
