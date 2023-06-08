@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 NUM_CLASSES = 34  
 min_course_class = 2                              
-CLASS_TIMES = ["8-9am", "9-10am", "10-11am", "11am-12pm", "12-1pm", "1-2pm", "2-3pm"]
+# CLASS_TIMES = ["8-9am", "9-10am", "10-11am", "11am-12pm", "12-1pm", "1-2pm", "2-3pm"]
 # ROOMS = ["Room A", "Room B", "Room C", "Room D", "Room E"]
 # COURSES = ["Introduction to Programming", "Data Structures and Algorithms", "Computer Architecture", "Operating Systems", "Database Systems", "Computer Networks", "Software Engineering", "Web Development", "Machine Learning", "Artificial Intelligence", "Computer Graphics", "Computer Vision", "Natural Language Processing", "Cybersecurity", "Data Science", "Programming Languages", "Theory of Computation"]
 # COURSE_INSTRUCTORS = {
@@ -230,17 +230,21 @@ def deleteInstructor(request, instructor_id):
 
 # Course
 def addCourse(request):
+    all_instructors = Instructor.objects.values_list('name', flat=True)
     if request.method == 'POST':
-        form = CourseForm(request.POST)
+        form = CourseForm(request.POST or None)
 
         if form.is_valid():
             form.save()
             all_courses = Course.objects.all
-            return render(request, 'add-course.html', {'all_courses': all_courses})
+            # print(Course.objects.values_list('instructors', flat=True))
+            print("hello world")
+
+            return render(request, 'add-course.html', {'all_courses': all_courses, 'all_instructors': all_instructors})
 
     else:
         all_courses = Course.objects.all
-        return render(request, 'add-course.html', {'all_courses': all_courses})
+        return render(request, 'add-course.html', {'all_courses': all_courses, 'all_instructors': all_instructors})
     
 def deleteCourse(request, course_id):
     item = Course.objects.get(pk=course_id)
@@ -291,7 +295,8 @@ def generateSchedule(request):
     INSTRUCTORS = Instructor.objects.values_list('name', flat=True)
     COURSES = Course.objects.values_list('name', flat=True)
     ROOMS = Room.objects.values_list('name', flat=True)
-    MeetingTimes = MeetingTime.objects.all()
+    MeetingTimes = MeetingTime.objects.all
+    print(Course.objects.values_list('instructors', flat=True))
     schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTimes, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
 
     print_schedule(schedule)

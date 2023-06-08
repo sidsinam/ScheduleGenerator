@@ -15,8 +15,11 @@ class CourseForm(ModelForm):
         model = Course
         fields = [
             'uid',
-            'name'
+            'name',
+            'max_numb_students',
+            'instructors'
         ]
+        
         
 class RoomForm(ModelForm):
     class Meta:
