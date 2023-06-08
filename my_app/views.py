@@ -34,7 +34,7 @@ min_course_class = 2
 #}
 # DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 # time_dict = {"8-9am": 1, "9-10am" : 2, "10-11am" : 3, "11am-12pm" : 4, "12-1pm" : 5, "1-2pm" :6, "2-3pm": 7}
-weekday_dict = {'MON': 1, 'TUE': 2, 'WED': 3, 'THU': 4, 'FRI': 5}
+weekday_dict = {'MON': 1, 'TUE': 2, 'WED': 3, 'THU': 4, 'FRI': 5, 'SAT': 6}
 
 
 # Create your views here.
@@ -75,7 +75,7 @@ def get_fitness(schedule):
     minclass = 0
     x = NUM_CLASSES // len(list(schedule.time_slots))
     extra_classes = NUM_CLASSES % len(list(schedule.time_slots))
-    classes_per_day = [0] * len(list(schedule.time_slots))
+    classes_per_day = [0] * len(weekday_dict)
     course_class_count = [0] * len(schedule.courses)
     # Check for conflicts and gaps in the schedule
     for i in range(NUM_CLASSES):
@@ -86,8 +86,8 @@ def get_fitness(schedule):
                 conflicts += 1
             if schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].time == schedule.classes[j].time:
                 conflicts += 1
-            # if schedule.classes[i].daytime.day == schedule.classes[j].daytime.day and abs(time_dict[schedule.classes[i].daytime.time] - time_dict[schedule.classes[j].daytime.time]) > 1:
-            #       gaps += 1
+            if schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].time['end_time'] != schedule.classes[j].time['start_time']:
+                gaps += 1
 
         classes_per_day[weekday_dict[schedule.classes[i].day] - 1] += 1
 
@@ -205,6 +205,7 @@ def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, p
     # Print the best schedule in the final generation
     population = sorted(population, key=lambda x: x.fitness, reverse=True) 
 
+    population[0].classes = sorted(population[0].classes, key = lambda x: (weekday_dict[x.day],x.time['start_time'], x.room))
     return population[0]
          
 # Instructor
@@ -292,8 +293,7 @@ def generateSchedule(request):
     INSTRUCTORS = Instructor.objects.values_list('name', flat=True)
     COURSES = Course.objects.values_list('name', flat=True)
     ROOMS = Room.objects.values_list('name', flat=True)
-    MeetingTimes = MeetingTime.objects.all
-    print(Course.objects.values_list('instructors', flat=True))
+    MeetingTimes = MeetingTime.objects.all()
     schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTimes, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
 
     print_schedule(schedule)
