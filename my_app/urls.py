@@ -12,5 +12,5 @@ urlpatterns = [
     path('add-meetingTime', views.addMeetingTime, name='add-meetingTime'),
     path('delete-meetingTime/<item_pid>', views.deleteMeetingTime, name='delete-meetingTime'),
     path('generateSchedule', views.generateSchedule, name='generateSchedule'),
-    path('download-pdf', views.download_pdf, name='download-pdf'),
+    # path('download-pdf', views.download_pdf, name='download-pdf'),
 ]

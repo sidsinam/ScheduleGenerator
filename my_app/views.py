@@ -6,19 +6,19 @@ import random
 from datetime import datetime, timedelta
 
 from django.http import HttpResponse
-from bs4 import BeautifulSoup
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table
+# from bs4 import BeautifulSoup
+# from reportlab.lib.pagesizes import letter
+# from reportlab.platypus import SimpleDocTemplate, Table
 
-from django.template.loader import get_template
-from xhtml2pdf import pisa
+# from django.template.loader import get_template
+# from xhtml2pdf import pisa
 
 
 # import numpy as np
 
 
-NUM_CLASSES = 90 
-min_course_class = 3                              
+NUM_CLASSES = 30
+min_course_class = 2                             
 weekday_dict = {'MON': 1, 'TUE': 2, 'WED': 3, 'THU': 4, 'FRI': 5, 'SAT': 6}
 
 
@@ -56,7 +56,7 @@ class DayTimeSlot:
 def get_fitness(schedule):
     # Initialize counters for conflicts and gaps
     conflicts = 0
-    gaps = 0
+    same_class = 0
     minclass = 0
     x = NUM_CLASSES // len(list(schedule.time_slots))
     extra_classes = NUM_CLASSES % len(list(schedule.time_slots))
@@ -71,8 +71,8 @@ def get_fitness(schedule):
                 conflicts += 1
             if schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].time == schedule.classes[j].time:
                 conflicts += 1
-            if schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].time['end_time'] != schedule.classes[j].time['start_time']:
-                gaps += 1
+            if schedule.classes[i].day == schedule.classes[j].day and schedule.classes[i].course == schedule.classes[j].course:
+                same_class += 1
 
         classes_per_day[weekday_dict[schedule.classes[i].day] - 1] += 1
 
@@ -91,7 +91,7 @@ def get_fitness(schedule):
 
     #print(f"{minclass} , {conflicts}, {balance_penalty}")
     # Calculate fitness score using conflicts and gaps
-    return 1 / (1 * conflicts + 1) * 1 / (0.01 * balance_penalty + 1) #* (1 / (0.01 * gaps + 1))
+    return 1 / (1 * conflicts + 1) * 1 / (0.01 * balance_penalty + 1) * (1 / (1 * same_class + 1))
 
 # Define the schedule class
 class Schedule:
@@ -350,7 +350,7 @@ def generateSchedule(request):
     ROOMS = Room.objects.values_list('name', flat=True)
     MeetingTimes = MeetingTime.objects.all()
     schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTimes, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
-    # print_schedule(schedule)
+    print_schedule(schedule)
     
     timetable.append(schedule.classes)
     
@@ -450,22 +450,22 @@ def print_schedule(schedule):
 
 #     return response
 
-def download_pdf(request):
-    # print_schedule(timetable)
-    template_path = 'time-table.html'  # Specify the path to your Django template
+# def download_pdf(request):
+#     # print_schedule(timetable)
+#     template_path = 'time-table.html'  # Specify the path to your Django template
 
-    # Render the template with the provided context
-    template = get_template(template_path)
-    html = template.render({ 'timetable': timetable })
+#     # Render the template with the provided context
+#     template = get_template(template_path)
+#     html = template.render({ 'timetable': timetable })
 
-    # Create a PDF object
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
-    pdf = pisa.CreatePDF(html, dest=response)
+#     # Create a PDF object
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+#     pdf = pisa.CreatePDF(html, dest=response)
 
-    # If PDF generation successful, return the PDF as a response
-    if not pdf.err:        
-        return response
+#     # If PDF generation successful, return the PDF as a response
+#     if not pdf.err:        
+#         return response
 
-    # If there was an error generating the PDF, return an error message
-    return HttpResponse('Error generating PDF', status=500)
+#     # If there was an error generating the PDF, return an error message
+#     return HttpResponse('Error generating PDF', status=500)

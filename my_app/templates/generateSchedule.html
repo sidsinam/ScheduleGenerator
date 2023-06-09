@@ -39,8 +39,8 @@
       {% endfor %}
     </table>
 
-    <a class="delete-button" href="{% url 'download-pdf'  %}">
+    {% comment %} <a class="delete-button" href="{% url 'download-pdf'  %}">
       Download PDF
-    </a>
+    </a> {% endcomment %}
   {% endif %}
 {% endblock %}
