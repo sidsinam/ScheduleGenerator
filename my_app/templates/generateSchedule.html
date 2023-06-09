@@ -1,20 +1,46 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% load static %}
 
   {% if schedule %}
-    <h3 class="mt-5">Schedule</h3>
-    <table class="table table-bordered">
+    <h3 class="mt-4 mb-3">Time-Table</h3>
+    <table class="table table-bordered" >
+      <tr class="table-heading">
+        <td>
+          <center>Sl. No.</center>
+        </td>
+        <td>
+          <center>Day</center>
+        </td>
+        <td>
+          <center>Start Time</center>
+        </td>
+        <td>
+          <center>Course</center>
+          </td>
+        <td>
+          <center>Instructor</center>
+        </td>
+        
+        <td>
+          <center>Room</center>
+        </td>
+      </tr>
       {% for item in schedule.classes %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ item.course }}</td>
-          <td>{{ item.instructor }}</td>
-          <td>{{ item.day}}</td>
-          <td>{{ item.time.start_time}}</td>
-          <td>{{ item.room}}</td>
+        <tr class="table-data">
+          <td><center>{{ forloop.counter }}</center></td>
+          <td><center>{{ item.day }}</center></td>
+          <td><center>{{ item.time.start_time }}</center></td>
+          <td><center>{{ item.course }}</center></td>
+          <td><center>{{ item.instructor }}</center></td>          
+          <td><center>{{ item.room }}</center></td>
         </tr>
       {% endfor %}
     </table>
+
+    <a class="delete-button" href="{% url 'download-pdf'  %}">
+      Download PDF
+    </a>
   {% endif %}
 {% endblock %}
