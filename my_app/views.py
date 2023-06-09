@@ -17,32 +17,8 @@ from xhtml2pdf import pisa
 # import numpy as np
 
 
-NUM_CLASSES = 34  
-min_course_class = 2                              
-# CLASS_TIMES = ["8-9am", "9-10am", "10-11am", "11am-12pm", "12-1pm", "1-2pm", "2-3pm"]
-# ROOMS = ["Room A", "Room B", "Room C", "Room D", "Room E"]
-# COURSES = ["Introduction to Programming", "Data Structures and Algorithms", "Computer Architecture", "Operating Systems", "Database Systems", "Computer Networks", "Software Engineering", "Web Development", "Machine Learning", "Artificial Intelligence", "Computer Graphics", "Computer Vision", "Natural Language Processing", "Cybersecurity", "Data Science", "Programming Languages", "Theory of Computation"]
-# COURSE_INSTRUCTORS = {
-#     "Introduction to Programming": ["John Smith", "Jane Doe"],
-#     "Data Structures and Algorithms": ["Bob Johnson", "Sara Lee"],
-#     "Computer Architecture": ["David Kim", "Amy Chen"],
-#     "Operating Systems": ["Mike Davis", "Karen Brown"],
-#     "Database Systems": ["Chris Lee", "Emily Wang"],
-#     "Computer Networks": ["Alice Lee", "Kevin Chen"],
-#     "Software Engineering": ["Tom Davis", "Grace Kim"],
-#     "Web Development": ["Jim Lee", "Linda Chen"],
-#     "Machine Learning": ["Peter Kim", "Rachel Lee"],
-#     "Artificial Intelligence": ["Jenny Chen", "Tom Smith"],
-#     "Computer Graphics": ["Sam Lee", "Kate Kim"],
-#     "Computer Vision": ["Joe Smith", "Lisa Davis"],
-#     "Natural Language Processing": ["Sarah Chen", "Mike Lee"],
-#     "Cybersecurity": ["Susan Lee", "Chris Kim"],
-#     "Data Science": ["Anna Chen", "Jason Smith"],
-#     "Programming Languages": ["Kim Smith", "Mike Brown"],
-#     "Theory of Computation": ["Lisa Lee", "John Kim"],
-#}
-# DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-# time_dict = {"8-9am": 1, "9-10am" : 2, "10-11am" : 3, "11am-12pm" : 4, "12-1pm" : 5, "1-2pm" :6, "2-3pm": 7}
+NUM_CLASSES = 90 
+min_course_class = 3                              
 weekday_dict = {'MON': 1, 'TUE': 2, 'WED': 3, 'THU': 4, 'FRI': 5, 'SAT': 6}
 
 
@@ -214,11 +190,34 @@ def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, p
     # Print the best schedule in the final generation
     population = sorted(population, key=lambda x: x.fitness, reverse=True) 
 
+    # print(population[0].classes[0].time['start_time'])
     population[0].classes = sorted(population[0].classes, key = lambda x: (weekday_dict[x.day],x.time['start_time'], x.room))
     return population[0]
          
 # Instructor
 def addInstructor(request):
+    # instructors = [
+    #     Instructor(uid='UID1', name='John Smith'),
+    #     Instructor(uid='UID2', name='Jane Doe'),
+    #     Instructor(uid='UID3', name='Michael Johnson'),
+    #     Instructor(uid='UID4', name='Emily Brown'),
+    #     Instructor(uid='UID5', name='David Davis'),
+    #     Instructor(uid='UID6', name='Sarah Wilson'),
+    #     Instructor(uid='UID7', name='Daniel Anderson'),
+    #     Instructor(uid='UID8', name='Olivia Taylor'),
+    #     Instructor(uid='UID9', name='Matthew Martinez'),
+    #     Instructor(uid='UID10', name='Sophia Robinson'),
+    #     Instructor(uid='UID11', name='Andrew Thompson'),
+    #     Instructor(uid='UID12', name='Emma Lewis'),
+    #     Instructor(uid='UID13', name='Christopher Green'),
+    #     Instructor(uid='UID14', name='Ava Walker'),
+    #     Instructor(uid='UID15', name='Joshua Hall'),
+    # ]
+
+    # # Save the instructors to the database
+    # for instructor in instructors:
+    #     instructor.save()
+        
     if request.method == 'POST':
         form = InstructorForm(request.POST)
 
@@ -240,7 +239,53 @@ def deleteInstructor(request, instructor_id):
 
 # Course
 def addCourse(request):
-    # all_instructors = Instructor.objects.values_list('name', flat=True)
+    # courses_data = [
+    #     {'uid': 'CS1', 'name': 'Introduction to Computer Science', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS2', 'name': 'Data Structures and Algorithms', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS3', 'name': 'Programming in Python', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS4', 'name': 'Web Development', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS5', 'name': 'Database Management', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS6', 'name': 'Operating Systems', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS7', 'name': 'Computer Architecture', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS8', 'name': 'Software Engineering', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS9', 'name': 'Artificial Intelligence', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS10', 'name': 'Machine Learning', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS11', 'name': 'Data Mining', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS12', 'name': 'Computer Networks', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS13', 'name': 'Cybersecurity', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS14', 'name': 'Human-Computer Interaction', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS15', 'name': 'Mobile App Development', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS16', 'name': 'Cloud Computing', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS17', 'name': 'Big Data Analytics', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS18', 'name': 'Computer Graphics', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS19', 'name': 'Natural Language Processing', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS20', 'name': 'Blockchain Technology', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS21', 'name': 'Internet of Things', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS22', 'name': 'Parallel and Distributed Computing', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS23', 'name': 'Data Science', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS24', 'name': 'Computer Vision', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS25', 'name': 'Software Testing and Quality Assurance', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS26', 'name': 'Computer Ethics and Professionalism', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS27', 'name': 'Data Visualization', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS28', 'name': 'Information Retrieval', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS29', 'name': 'Robotics', 'max_numb_students': random.randint(30, 60)},
+    #     {'uid': 'CS30', 'name': 'Quantum Computing', 'max_numb_students': random.randint(30, 60)},
+    # ]
+    
+    # courses = []
+    # for course_data in courses_data:
+    #     course = Course(uid=course_data['uid'], name=course_data['name'], max_numb_students=str(course_data['max_numb_students']))
+    #     course.save()
+    #     courses.append(course)
+
+    # # Assign 2 courses to each instructor
+    # instructors = Instructor.objects.all()[:15]  # Get the first 15 instructors
+    # for i, instructor in enumerate(instructors):
+    #     courses_to_assign = courses[i * 2 : (i * 2) + 2]
+    #     for course in courses_to_assign:
+    #         course.instructors.add(instructor)
+
+
     form = CourseForm(request.POST or None)
     if request.method == 'POST':      
 
@@ -333,7 +378,7 @@ def generate_day_time_slot(meeting_times):
     
 
 def print_schedule(schedule):
-    schedule.classes = sorted(schedule.classes, key = lambda x: (weekday_dict[x.day], x.room))
+    #schedule.classes = sorted(schedule.classes, key = lambda x: (weekday_dict[x.day], x.room))
     headers = ["ID", "Course", "Day", "Time", "Instructor", "Room", "Department"]
     table = []
     for i, scheduled_class in enumerate(schedule.classes):
