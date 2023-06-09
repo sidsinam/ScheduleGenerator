@@ -13,4 +13,6 @@ urlpatterns = [
     path('delete-meetingTime/<item_pid>', views.deleteMeetingTime, name='delete-meetingTime'),
     path('generateSchedule', views.generateSchedule, name='generateSchedule'),
     path('download-pdf', views.download_pdf, name='download-pdf'),
+    path('about', views.about, name='about'),
+    path('contact', views.contact, name='contact'),
 ]
