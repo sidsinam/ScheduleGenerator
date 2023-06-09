@@ -10,8 +10,14 @@
     </tr>
   {% endfor %}
 </table> {% endcomment %}
-<h1>Damn</h1>
-{{ timetable }}
-{% for item in schedule %}
-  <h2>{{ item.course }}</h2>
-{% endfor %}
+<h1>Time-Table</h1>
+<table>
+  {% for item in timetable %}
+    {% comment %} <h3>{{ forloop.counter }}</h3> {% endcomment %}
+    <tr>
+      {% for it in item %}
+        <td>{{ it }}</td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
+</table>

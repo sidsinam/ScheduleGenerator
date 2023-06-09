@@ -352,8 +352,11 @@ def generateSchedule(request):
     schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTimes, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
     print_schedule(schedule)
     
-    timetable.append(schedule.classes)
-    
+    timetable.clear()
+    for item in schedule.classes:
+        timetable.append([item.day, item.time['start_time'], item.course, item.instructor, item.room])
+        
+        
     return render(request, 'generateSchedule.html', {
         'schedule': schedule,       
     })
@@ -383,6 +386,11 @@ def print_schedule(schedule):
         table.append(row)
     print(tabulate(table, headers=headers, tablefmt="grid"))
     
+def about(request):
+    return render(request, 'about.html')
+
+def contact(request):
+    return render(request, 'contact.html')
     
 # def download_pdf(schedule):
 #     # Create a response object with the appropriate MIME type
@@ -454,9 +462,16 @@ def print_schedule(schedule):
 #     # print_schedule(timetable)
 #     template_path = 'time-table.html'  # Specify the path to your Django template
 
+<<<<<<< HEAD
 #     # Render the template with the provided context
 #     template = get_template(template_path)
 #     html = template.render({ 'timetable': timetable })
+=======
+    # Render the template with the provided context
+    template = get_template(template_path)
+    html = template.render({ 'timetable': timetable })
+    print(timetable)
+>>>>>>> 9883e03316082401cf9de5d653adf1cb0b11ad81
 
 #     # Create a PDF object
 #     response = HttpResponse(content_type='application/pdf')
