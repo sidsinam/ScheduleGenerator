@@ -5,6 +5,15 @@ from tabulate import tabulate
 import random
 from datetime import datetime, timedelta
 
+from django.http import HttpResponse
+from bs4 import BeautifulSoup
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table
+
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+
+
 # import numpy as np
 
 
@@ -289,14 +298,16 @@ def deleteMeetingTime(request, item_pid):
     return redirect('add-meetingTime')
     
 # Generate Schedule
+timetable = []
 def generateSchedule(request):
     INSTRUCTORS = Instructor.objects.values_list('name', flat=True)
     COURSES = Course.objects.values_list('name', flat=True)
     ROOMS = Room.objects.values_list('name', flat=True)
     MeetingTimes = MeetingTime.objects.all()
     schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTimes, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
-
-    print_schedule(schedule)
+    # print_schedule(schedule)
+    
+    timetable.append(schedule.classes)
     
     return render(request, 'generateSchedule.html', {
         'schedule': schedule,       
@@ -326,3 +337,90 @@ def print_schedule(schedule):
         row = [i+1, scheduled_class.course, scheduled_class.day, scheduled_class.time, scheduled_class.instructor, scheduled_class.room]
         table.append(row)
     print(tabulate(table, headers=headers, tablefmt="grid"))
+    
+    
+# def download_pdf(schedule):
+#     # Create a response object with the appropriate MIME type
+#     response = HttpResponse(content_type='application/pdf')
+
+#     # Set the filename of the PDF
+#     response['Content-Disposition'] = 'attachment; filename="table.pdf"'
+
+#     # HTML content of the table
+#     table_html = '''
+#     <table>
+#       <tr>
+#         <th>#</th>
+#         <th>Course</th>
+#         <th>Instructor</th>
+#         <th>Day</th>
+#         <th>Start Time</th>
+#         <th>Room</th>
+#       </tr>
+#       {% for item in schedule.classes %}
+#         <tr>
+#           <td>{{ forloop.counter }}</td>
+#           <td>{{ item.course }}</td>
+#           <td>{{ item.instructor }}</td>
+#           <td>{{ item.day }}</td>
+#           <td>{{ item.time.start_time }}</td>
+#           <td>{{ item.room }}</td>
+#         </tr>
+#       {% endfor %}
+#     </table>
+#     '''
+
+#     # Parse the HTML content using BeautifulSoup
+#     soup = BeautifulSoup(table_html, 'html.parser')
+
+#     # Extract the table rows and data
+#     rows = soup.find_all('tr')
+#     table_data = []
+#     for row in rows:
+#         cols = row.find_all('td')
+#         row_data = [col.get_text() for col in cols]
+#         table_data.append(row_data)
+
+#     # Create a ReportLab SimpleDocTemplate with the response object and page size
+#     doc = SimpleDocTemplate(response, pagesize=letter)
+
+#     # Create a ReportLab Table from the extracted table data
+#     table = Table(table_data)
+
+#     # Add styling to the table
+#     table.setStyle([
+#         ('BACKGROUND', (0, 0), (-1, 0), '#eeeeee'),
+#         ('TEXTCOLOR', (0, 0), (-1, 0), '#333333'),
+#         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+#         ('FONTSIZE', (0, 0), (-1, 0), 12),
+#         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+#         ('BACKGROUND', (0, 1), (-1, -1), '#ffffff'),
+#         ('GRID', (0, 0), (-1, -1), 1, '#cccccc'),
+#     ])
+
+#     # Build the PDF document with the table
+#     elements = [table]
+#     doc.build(elements)
+
+#     return response
+
+def download_pdf(request):
+    # print_schedule(timetable)
+    template_path = 'time-table.html'  # Specify the path to your Django template
+
+    # Render the template with the provided context
+    template = get_template(template_path)
+    html = template.render({ 'timetable': timetable })
+
+    # Create a PDF object
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+    pdf = pisa.CreatePDF(html, dest=response)
+
+    # If PDF generation successful, return the PDF as a response
+    if not pdf.err:        
+        return response
+
+    # If there was an error generating the PDF, return an error message
+    return HttpResponse('Error generating PDF', status=500)
