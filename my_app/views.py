@@ -6,15 +6,13 @@ import random
 from datetime import datetime, timedelta
 
 from django.http import HttpResponse
-# from bs4 import BeautifulSoup
-# from reportlab.lib.pagesizes import letter
-# from reportlab.platypus import SimpleDocTemplate, Table
-
-# from django.template.loader import get_template
-# from xhtml2pdf import pisa
 
 
-# import numpy as np
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+
+
+import numpy as np
 
 
 NUM_CLASSES = 30
@@ -91,7 +89,7 @@ def get_fitness(schedule):
 
     #print(f"{minclass} , {conflicts}, {balance_penalty}")
     # Calculate fitness score using conflicts and gaps
-    return 1 / (1 * conflicts + 1) * 1 / (0.01 * balance_penalty + 1) * (1 / (1 * same_class + 1))
+    return 1 / (1 * conflicts + 1) * 1 / (0.01 * balance_penalty + 1) * (1 / (1 * same_class + 1)) * 1/ (1 * minclass + 1)
 
 # Define the schedule class
 class Schedule:
@@ -109,23 +107,22 @@ class Schedule:
 
 # Define the genetic algorithm function
 def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, population_size, elite_size, mutation_rate, generations):
-    print("Inside genetic algorithm")
     slot = generate_day_time_slot(meeting_times)
     time_slots = slot.slots
-    print(time_slots)
+    course_names = [course.name for course in courses]
     # Create the initial population
     population = []
     for i in range(population_size):
         classes = []
         for j in range(num_classes):
             course = random.choice(courses)
-            instructor = random.choice(instructors)
+            instructor = random.choice(course.instructors.all())
             room = random.choice(rooms)
             day = random.choice(list(time_slots))
             time = random.choice(time_slots[day])
             
-            classes.append(Class(course, instructor, room, day, time))
-        population.append(Schedule(classes, courses, time_slots))
+            classes.append(Class(course.name, instructor.name, room, day, time))
+        population.append(Schedule(classes, course_names, time_slots))
 
     
     # Evolve the population for a given number of generations
@@ -175,14 +172,14 @@ def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, p
             for k in range(num_classes):
                 if random.random() < mutation_rate:
                     course = random.choice(courses)
-                    instructor = random.choice(instructors)
+                    instructor = random.choice(course.instructors.all())
                     room = random.choice(rooms)
                     day = random.choice(list(time_slots))
                     time = random.choice(time_slots[day])
-                    child[k] = Class(course, instructor, room, day, time)
+                    child[k] = Class(course.name, instructor.name, room, day, time)
 
             # Add the child to the new population
-            new_population.append(Schedule(child,courses,time_slots))
+            new_population.append(Schedule(child,course_names,time_slots))
 
         # Set the population to the new population
         population = new_population
@@ -191,7 +188,7 @@ def genetic_algorithm(num_classes, instructors, meeting_times, rooms, courses, p
     population = sorted(population, key=lambda x: x.fitness, reverse=True) 
 
     # print(population[0].classes[0].time['start_time'])
-    population[0].classes = sorted(population[0].classes, key = lambda x: (weekday_dict[x.day],x.time['start_time'], x.room))
+    population[0].classes = sorted(population[0].classes, key = lambda x: (weekday_dict[x.day],x.time['start_time']))
     return population[0]
          
 # Instructor
@@ -345,9 +342,9 @@ def deleteMeetingTime(request, item_pid):
 # Generate Schedule
 timetable = []
 def generateSchedule(request):
-    INSTRUCTORS = Instructor.objects.values_list('name', flat=True)
-    COURSES = Course.objects.values_list('name', flat=True)
-    ROOMS = Room.objects.values_list('name', flat=True)
+    INSTRUCTORS = Instructor.objects.all()
+    COURSES = Course.objects.all()
+    ROOMS = Room.objects.all()
     MeetingTimes = MeetingTime.objects.all()
     schedule = genetic_algorithm(NUM_CLASSES, INSTRUCTORS, MeetingTimes, ROOMS, COURSES, population_size=9, elite_size=1, mutation_rate=0.05, generations=500)
     print_schedule(schedule)
@@ -458,29 +455,23 @@ def contact(request):
 
 #     return response
 
-# def download_pdf(request):
-#     # print_schedule(timetable)
-#     template_path = 'time-table.html'  # Specify the path to your Django template
+def download_pdf(request):
+    # print_schedule(timetable)
+    template_path = 'time-table.html'  # Specify the path to your Django template
 
-<<<<<<< HEAD
-#     # Render the template with the provided context
-#     template = get_template(template_path)
-#     html = template.render({ 'timetable': timetable })
-=======
-    # Render the template with the provided context
+    #Render the template with the provided context
     template = get_template(template_path)
     html = template.render({ 'timetable': timetable })
     print(timetable)
->>>>>>> 9883e03316082401cf9de5d653adf1cb0b11ad81
 
-#     # Create a PDF object
-#     response = HttpResponse(content_type='application/pdf')
-#     response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
-#     pdf = pisa.CreatePDF(html, dest=response)
+    # Create a PDF object
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+    pdf = pisa.CreatePDF(html, dest=response)
 
-#     # If PDF generation successful, return the PDF as a response
-#     if not pdf.err:        
-#         return response
+    # If PDF generation successful, return the PDF as a response
+    if not pdf.err:        
+        return response
 
-#     # If there was an error generating the PDF, return an error message
-#     return HttpResponse('Error generating PDF', status=500)
+    # If there was an error generating the PDF, return an error message
+    return HttpResponse('Error generating PDF', status=500)

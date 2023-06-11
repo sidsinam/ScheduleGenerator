@@ -28,7 +28,7 @@ class Room(models.Model):
     capacity = models.IntegerField(default=0)
     
     def __str__(self):
-        return self.name + " " + self.capacity
+        return self.name #+ " " + self.capacity
     
 time_slots = []
 
